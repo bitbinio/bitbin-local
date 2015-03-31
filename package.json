@@ -1,0 +1,34 @@
+{
+  "name": "bitbin-local",
+  "version": "0.0.1",
+  "description": "Local file system adapter for Bitbin.",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bitbinio/bitbin-local.git"
+  },
+  "keywords": [
+    "bitbin",
+    "filesystem",
+    "adapter"
+  ],
+  "author": "Chris Saylor <cjsaylor@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/bitbinio/bitbin-local/issues"
+  },
+  "homepage": "https://github.com/bitbinio/bitbin-local",
+  "dependencies": {
+      "junk": "^1.0.0",
+      "q": "^1.1.2"
+  },
+  "peerDependencies": {
+    "bitbin": ">= 0.0.1 < 1"
+  },
+  "devDependencies": {
+    "bitbin": "^0.0.1"
+  }
+}
