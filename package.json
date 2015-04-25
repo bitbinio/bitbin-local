@@ -36,6 +36,7 @@
     "grunt-cli": "^0.1.13",
     "grunt-contrib-jshint": "^0.10.0",
     "grunt-mocha-test": "^0.12.4",
+    "md5-transpose-list": "^1.0.2",
     "mocha": "^2.0.1"
   }
 }

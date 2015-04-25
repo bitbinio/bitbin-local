@@ -4,12 +4,11 @@ var q = require('q');
 var junk = require('junk');
 var BaseAdapter = require('bitbin/src/base_adapter');
 
-var LocalAdapter = function(config, fs, glob, md5, md5Transposer) {
+var LocalAdapter = function(config, fs, glob, md5Transposer) {
     BaseAdapter.apply(this, arguments);
     this.uploadPath = config.retrieve().options.uploadPath;
     this.fs = fs;
     this.glob = glob;
-    this.md5 = md5;
     this.md5Transposer = md5Transposer;
 };
 
@@ -18,22 +17,6 @@ var LocalAdapter = function(config, fs, glob, md5, md5Transposer) {
  */
 var filterJunk = function(files) {
     return files.filter(junk.not);
-};
-
-var transposeMd5 = function(files) {
-    var sumPromises = [];
-    files.forEach(function(file) {
-        sumPromises.push(this.md5.computeFromFile(file));
-    }.bind(this));
-    return q.all(sumPromises)
-        .then(function(sums) {
-            return files.map(function(entry, i) {
-                return {
-                    name: entry,
-                    hash: sums[i]
-                };
-            });
-        });
 };
 
 util.inherits(LocalAdapter, BaseAdapter);
@@ -99,9 +82,12 @@ LocalAdapter.prototype.download = function(files) {
  */
 LocalAdapter.prototype.filterExisting = function(files) {
     var uploadPath = this.uploadPath;
+    var transposer = function(files) {
+        return this.md5Transposer.transpose(files, true);
+    }.bind(this);
     return q.nfcall(this.glob, uploadPath + '/**/*', {nodir: true})
         .then(filterJunk)
-        .then(transposeMd5.bind(this))
+        .then(transposer)
         .then(function(entries) {
             return files.filter(function(file) {
                 return !entries.some(function(entry) {
@@ -150,7 +136,6 @@ module.exports = function(container) {
         container.config,
         container.node.fs,
         container.glob,
-        container.md5,
         container.md5TransposeList
     );
 };
