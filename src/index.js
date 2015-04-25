@@ -49,11 +49,11 @@ LocalAdapter.prototype.ensureFilesExists = function(files) {
                 });
             });
             if (diff.length) {
-                var message = 'The following files do not exist or does not match required md5sum: \n';
-                message += ' * ' + diff.map(function(file) {
-                    return file.name + ' (' + file.hash + ')'; 
-                }).join('\n * ');
-                deferred.reject(message);
+                deferred.reject(
+                    'The following files do not exist or does not match required md5sum: \n * ' + diff.map(function(file) {
+                        return file.name + ' (' + file.hash + ')'; 
+                    }).join('\n * ')
+                );
             } else {
                 // To make the download step easier, just pass the transposed.
                 deferred.resolve(transposed);
