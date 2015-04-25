@@ -4,12 +4,13 @@ var q = require('q');
 var junk = require('junk');
 var BaseAdapter = require('bitbin/src/base_adapter');
 
-var LocalAdapter = function(config, fs, glob, md5) {
+var LocalAdapter = function(config, fs, glob, md5, md5Transposer) {
     BaseAdapter.apply(this, arguments);
     this.uploadPath = config.retrieve().options.uploadPath;
     this.fs = fs;
     this.glob = glob;
     this.md5 = md5;
+    this.md5Transposer = md5Transposer;
 };
 
 /**
@@ -36,6 +37,59 @@ var transposeMd5 = function(files) {
 };
 
 util.inherits(LocalAdapter, BaseAdapter);
+
+/**
+ * Checks all files in the list to ensure they exist and are what is required.
+ *
+ * The file should be the same path and MD5 hash. If any file does not exist
+ * or does not match, it should reject the install.
+ *
+ * @param array files
+ * @return promise
+ */
+LocalAdapter.prototype.ensureFilesExists = function(files) {
+    var uploadPath = this.uploadPath;
+    var deferred = q.defer();
+    this.md5Transposer.transpose(files.map(function(file) {
+        return uploadPath + '/' + file.name;
+    }), true)
+        .then(function(transposed) {
+            var prefixLength = uploadPath.length + 1;
+            var diff = transposed.map(function(file) {
+                return {
+                    name: file.name.substr(prefixLength),
+                    hash: file.hash
+                };
+            }).filter(function(file) {
+                return !files.some(function(entry) {
+                    return entry.name === file.name && entry.hash === file.hash;
+                });
+            });
+            if (diff.length) {
+                var message = 'The following files do not exist or does not match required md5sum: \n';
+                message += ' * ' + diff.map(function(file) {
+                    return file.name + ' (' + file.hash + ')'; 
+                }).join('\n * ');
+                deferred.reject(message);
+            } else {
+                // To make the download step easier, just pass the transposed.
+                deferred.resolve(transposed);
+            }
+        });
+    return deferred.promise;
+};
+
+/**
+ * Download and store to the manifest location all files in the list.
+ *
+ * @param array files
+ * @return promise
+ * @todo implement
+ */
+LocalAdapter.prototype.download = function(files) {
+    console.log('NOTE: files not downloaded - Not implemented yet.');
+    return files;
+};
 
 /**
  * Filter files already existing in the upstream.
@@ -96,6 +150,7 @@ module.exports = function(container) {
         container.config,
         container.node.fs,
         container.glob,
-        container.md5
+        container.md5,
+        container.md5TransposeList
     );
 };
