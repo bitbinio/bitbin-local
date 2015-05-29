@@ -11,7 +11,7 @@ var config = {
     }
 };
 var glob = function(path, opts, callback) {
-    callback(null, [__dirname + '/fixture/md5test.txt']);
+    callback(null, [__dirname + '/fixture/md5test__v1.txt']);
 };
 
 describe('adapters/local', function() {
@@ -26,12 +26,14 @@ describe('adapters/local', function() {
             var files = [
                 {
                     name: 'sub/filea.jpg',
-                    hash: ''
+                    hash: '',
+                    version: '1'
                 },
                 // should be filtered due to "existing" in the uploadPath.
                 {
                     name: 'md5test.txt',
-                    hash: '77284ae4aac90cd005586850dce5fbd9'
+                    hash: '77284ae4aac90cd005586850dce5fbd9',
+                    version: '1'
                 }
             ];
             adapter.filterExisting(files).should.eventually.have.length(1).notify(done);
