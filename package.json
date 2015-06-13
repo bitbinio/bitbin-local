@@ -29,7 +29,7 @@
     "bitbin": ">= 0.0.2 < 1"
   },
   "devDependencies": {
-    "bitbin": "^0.0.2",
+    "bitbin": "^0.0.3",
     "chai": "^2.3.0",
     "chai-as-promised": "^5.0.0",
     "grunt": "^0.4.5",
