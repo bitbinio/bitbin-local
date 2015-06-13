@@ -32,21 +32,28 @@ util.inherits(LocalAdapter, BaseAdapter);
  */
 LocalAdapter.prototype.ensureFilesExists = function(files) {
     var uploadPath = this.uploadPath;
+    var versionFilename = this.versionFilename;
+    var extractVersion = this.extractVersion.bind(this);
     var deferred = q.defer();
     var uploadFileMapper = function(file) {
-        return uploadPath + '/' + file.name;
+        return uploadPath + '/' + versionFilename(file);
     };
     return this.md5TransposeList.transpose(files.map(uploadFileMapper), true)
         .then(function(transposed) {
-            var prefixLength = uploadPath.length + 1;
-            var diff = transposed.map(function(file) {
+            return transposed.map(function(file) {
+                var versioned = extractVersion(file.name);
                 return {
-                    name: file.name.substr(prefixLength),
-                    hash: file.hash
+                    name: versioned.name,
+                    hash: file.hash,
+                    version: versioned.version
                 };
-            }).filter(function(file) {
+            })
+        })
+        .then(function(transposed) {
+            var prefixLength = uploadPath.length + 1;
+            var diff = transposed.filter(function(file) {
                 return !files.some(function(entry) {
-                    return entry.name === file.name && entry.hash === file.hash;
+                    return entry.name === file.name.substr(prefixLength) && entry.hash === file.hash;
                 });
             });
             if (diff.length) {
