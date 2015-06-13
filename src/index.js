@@ -47,7 +47,7 @@ LocalAdapter.prototype.ensureFilesExists = function(files) {
                     hash: file.hash,
                     version: versioned.version
                 };
-            })
+            });
         })
         .then(function(transposed) {
             var prefixLength = uploadPath.length + 1;
@@ -98,7 +98,7 @@ LocalAdapter.prototype.download = function(files) {
                         .on('end', function() {
                             deferred.resolve(file.destination);
                         });
-                    output.on('error', deferred.reject)
+                    output.on('error', deferred.reject);
                     input.pipe(output);
                 });
             promises.push(deferred.promise);
