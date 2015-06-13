@@ -62,7 +62,6 @@ LocalAdapter.prototype.ensureFilesExists = function(files) {
                 };
                 throw new Error('The following files do not exist or does not match required md5sum: \n * ' + diff.map(displayMapper).join('\n * '));
             } else {
-                // To make the download step easier, just pass the transposed.
                 return transposed;
             }
         });
@@ -76,8 +75,37 @@ LocalAdapter.prototype.ensureFilesExists = function(files) {
  * @todo implement
  */
 LocalAdapter.prototype.download = function(files) {
-    console.log('NOTE: files not downloaded - Not implemented yet.');
-    return files;
+    var fs = this.fs;
+    var uploadPath = this.uploadPath;
+    var versionFilename = this.versionFilename;
+    var promises = [];
+    files
+        .map(function(file) {
+            return {
+                source: versionFilename(file),
+                destination: file.name.replace(uploadPath, '').replace(/^\//, '')
+            };
+        })
+        .forEach(function(file) {
+            var deferred = q.defer();
+
+            q.nfcall(fs.mkdirp, path.parse(file.destination).dir)
+                .then(function() {
+                    var input = fs.ReadStream(file.source);
+                    var output = fs.createWriteStream(file.destination);
+                    input
+                        .on('error', deferred.reject)
+                        .on('end', function() {
+                            deferred.resolve(file.destination);
+                        });
+                    output.on('error', deferred.reject)
+                    input.pipe(output);
+                });
+            promises.push(deferred.promise);
+        });
+    return q.all(promises).then(function() {
+        return files;
+    });
 };
 
 /**
